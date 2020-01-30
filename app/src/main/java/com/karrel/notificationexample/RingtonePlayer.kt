@@ -11,11 +11,12 @@ class RingtonePlayer(context: Context) : Mediable {
     }
 
     override fun playRingtone() {
+        mediaPlayer.seekTo(0)
         mediaPlayer.start()
     }
 
     override fun stopRingtone() {
-        mediaPlayer.stop()
+        mediaPlayer.pause()
     }
 
 

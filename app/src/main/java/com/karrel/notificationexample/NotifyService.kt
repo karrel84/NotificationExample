@@ -12,7 +12,7 @@ import androidx.core.app.NotificationCompat
 class NotifyService : Service(), Mediable {
 
     companion object {
-        private const val CHANNEL_ID = "CHANNEL_ID_7"
+        private const val CHANNEL_ID = "CHANNEL_ID_9"
         private const val NOTIFICATION_ID = 4
 
         const val REQUEST_CODE = "request-code"
@@ -22,13 +22,15 @@ class NotifyService : Service(), Mediable {
 
     private val vibrationArray: LongArray by lazy {
         longArrayOf( // 최대 60초
-            1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
-            , 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
-            , 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
-            , 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
-            , 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
-            , 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
         )
+//        longArrayOf( // 최대 60초
+//            1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
+//            , 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
+//            , 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
+//            , 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
+//            , 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
+//            , 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
+//        )
     }
 
     private val ringtonePlayer: RingtonePlayer by lazy {
@@ -41,6 +43,7 @@ class NotifyService : Service(), Mediable {
         println("NotifyService > onStartCommand > startId : $startId, flags : $flags")
 
         val requestCode = intent?.getIntExtra(REQUEST_CODE, -1)
+        println("NotifyService > onStartCommand > requestCode : $requestCode")
 
         when (requestCode) {
             REQUEST_CODE_ACCEPT -> {
@@ -48,7 +51,10 @@ class NotifyService : Service(), Mediable {
                 onAccept()
             }
             REQUEST_CODE_CANCEL -> onCancel()
-            else -> showNotification()
+            else -> {
+                showNotification()
+                playRingtone()
+            }
         }
 
         return START_REDELIVER_INTENT
@@ -122,7 +128,7 @@ class NotifyService : Service(), Mediable {
 
         startForeground(NOTIFICATION_ID, builder.build())
 
-        playRingtone()
+
     }
 
     private fun createIntent(requestCode: Int): Intent {
