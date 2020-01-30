@@ -36,7 +36,6 @@ class NotifyService : Service(), Mediable {
         println("NotifyService > onStartCommand")
 
         showNotification()
-//        showNotification2()
 
         return super.onStartCommand(intent, flags, startId)
     }
@@ -48,36 +47,9 @@ class NotifyService : Service(), Mediable {
         createNotificationChannel()
     }
 
-    private fun showNotification2() {
-        val fullScreenIntent = Intent(this, FullscreenActivity::class.java)
-        val fullScreenPendingIntent = PendingIntent.getActivity(
-            this, 0,
-            fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
-        val notificationBuilder =
-            NotificationCompat.Builder(this, CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle("Incoming call")
-                .setContentText("(919) 555-1234")
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setCategory(NotificationCompat.CATEGORY_CALL)
-
-                // Use a full-screen intent only for the highest-priority alerts where you
-                // have an associated activity that you would like to launch after the user
-                // interacts with the notification. Also, if your app targets Android 10
-                // or higher, you need to request the USE_FULL_SCREEN_INTENT permission in
-                // order for the platform to invoke this notification.
-                .setFullScreenIntent(fullScreenPendingIntent, true)
-
-        val incomingCallNotification = notificationBuilder.build()
-        startForeground(NOTIFICATION_ID, incomingCallNotification)
-
-    }
-
     private fun createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the supportㄷ library
+        // the NotificationChannel class is new and not in the support library
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = getString(R.string.channel_name)
             val descriptionText = getString(R.string.channel_description)
