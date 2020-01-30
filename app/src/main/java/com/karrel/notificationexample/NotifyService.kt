@@ -8,11 +8,16 @@ import android.os.IBinder
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 
+
 class NotifyService : Service(), Mediable {
 
     companion object {
-        private const val CHANNEL_ID = "CHANNEL_ID_3"
-        private const val NOTIFICATION_ID = 2
+        private const val CHANNEL_ID = "CHANNEL_ID_7"
+        private const val NOTIFICATION_ID = 4
+
+        const val REQUEST_CODE = "request-code"
+        const val REQUEST_CODE_CANCEL = 1111
+        const val REQUEST_CODE_ACCEPT = 1112
     }
 
     private val vibrationArray: LongArray by lazy {
@@ -33,11 +38,20 @@ class NotifyService : Service(), Mediable {
     override fun onBind(p0: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        println("NotifyService > onStartCommand")
+        println("NotifyService > onStartCommand > startId : $startId, flags : $flags")
 
-        showNotification()
+        val requestCode = intent?.getIntExtra(REQUEST_CODE, -1)
 
-        return super.onStartCommand(intent, flags, startId)
+        when (requestCode) {
+            REQUEST_CODE_ACCEPT -> {
+                stopForeground(true)
+                onAccept()
+            }
+            REQUEST_CODE_CANCEL -> onCancel()
+            else -> showNotification()
+        }
+
+        return START_REDELIVER_INTENT
     }
 
     override fun onCreate() {
@@ -46,6 +60,24 @@ class NotifyService : Service(), Mediable {
         println("NotifyService > onCreate")
         createNotificationChannel()
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        stopRingtone()
+        stopForeground(true)
+    }
+
+
+    private fun onCancel() {
+        stopRingtone()
+        stopForeground(true)
+    }
+
+    private fun onAccept() {
+        startActivity(getFullScreenIntent())
+    }
+
 
     private fun createNotificationChannel() {
         // Create the NotificationChannel, but only on API 26+ because
@@ -61,6 +93,7 @@ class NotifyService : Service(), Mediable {
                 enableVibration(true)
             }
 
+
             // Register the channel with the system
             val notificationManager: NotificationManager =
                 getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -71,12 +104,12 @@ class NotifyService : Service(), Mediable {
     private fun showNotification() {
         println("NotifyService > showNotification()")
 
+        val headsupView = createRemoteView()
 
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentTitle("My notification")
+            .setContentTitle("Slide")
             .setContentText("Much longer text that cannot fit one line...")
-//            .setStyle(NotificationCompat.DecoratedCustomViewStyle())
             .setStyle(NotificationCompat.BigTextStyle().bigText("Much longer text that cannot fit one line..."))
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setDefaults(Notification.DEFAULT_VIBRATE)
@@ -84,18 +117,45 @@ class NotifyService : Service(), Mediable {
             .setAutoCancel(false)
             .setVibrate(vibrationArray)
             .setFullScreenIntent(PendingIntent.getActivity(this, 0, getFullScreenIntent(), 0), true)
-//            .setContent(RemoteViews(packageName, R.layout.notification_content_view))
-            .setCustomHeadsUpContentView(
-                RemoteViews(
-                    packageName,
-                    R.layout.notification_handsup_content
-                )
-            )
-            .setCustomBigContentView(RemoteViews(packageName, R.layout.notification_big_content))
+            .setCustomHeadsUpContentView(headsupView)
+            .setCustomBigContentView(headsupView)
 
         startForeground(NOTIFICATION_ID, builder.build())
 
         playRingtone()
+    }
+
+    private fun createIntent(requestCode: Int): Intent {
+        return Intent(this, NotifyService::class.java).apply {
+            putExtra(REQUEST_CODE, requestCode)
+        }
+    }
+
+    private fun createRemoteView(): RemoteViews {
+        val remoteView = RemoteViews(packageName, R.layout.notification_handsup_content)
+        remoteView.setTextViewText(R.id.name, "빅토르")
+
+
+        remoteView.setOnClickPendingIntent(
+            R.id.cancel,
+            PendingIntent.getService(
+                this,
+                REQUEST_CODE_CANCEL,
+                createIntent(REQUEST_CODE_CANCEL),
+                PendingIntent.FLAG_UPDATE_CURRENT
+            )
+        )
+        remoteView.setOnClickPendingIntent(
+            R.id.accept,
+            PendingIntent.getService(
+                this,
+                REQUEST_CODE_ACCEPT,
+                createIntent(REQUEST_CODE_ACCEPT),
+                PendingIntent.FLAG_UPDATE_CURRENT
+            )
+        )
+
+        return remoteView
     }
 
     override fun playRingtone() {

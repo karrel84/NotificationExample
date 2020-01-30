@@ -38,30 +38,6 @@ class MainActivity : AppCompatActivity() {
                 startNotifyService()
             }
         }
-
-        notification3.setOnClickListener {
-            val pendingIntent = PendingIntent.getActivity(
-                this, 0 /* Request code */, intent,
-                PendingIntent.FLAG_CANCEL_CURRENT
-            )
-
-            val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-            val notificationBuilder = NotificationCompat.Builder(this)
-                .setChannelId(CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle("Helper")
-                .setContentText("님이 친구신청을$title 하셨습니다.")
-                .setAutoCancel(true)
-                .setPriority(NotificationCompat.PRIORITY_MAX)
-                .setDefaults(Notification.DEFAULT_VIBRATE)
-                .setSound(defaultSoundUri)
-                .setContentIntent(pendingIntent)
-
-            val notificationManager =
-                getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build())
-
-        }
     }
 
     private fun createNotificationChannel() {
