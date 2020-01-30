@@ -7,15 +7,27 @@ import android.os.Build
 import android.os.IBinder
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import io.reactivex.Observable
-import java.util.concurrent.TimeUnit
 
-class NotifyService : Service() {
+class NotifyService : Service(), Mediable {
 
     companion object {
-        private const val CHANNEL_ID = "CHANNEL_ID_123"
+        private const val CHANNEL_ID = "CHANNEL_ID_3"
         private const val NOTIFICATION_ID = 2
+    }
+
+    private val vibrationArray: LongArray by lazy {
+        longArrayOf( // 최대 60초
+            1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
+            , 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
+            , 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
+            , 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
+            , 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
+            , 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L, 1000L
+        )
+    }
+
+    private val ringtonePlayer: RingtonePlayer by lazy {
+        RingtonePlayer(this)
     }
 
     override fun onBind(p0: Intent?): IBinder? = null
@@ -23,8 +35,8 @@ class NotifyService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         println("NotifyService > onStartCommand")
 
-//        showNotification()
-        showNotification2()
+        showNotification()
+//        showNotification2()
 
         return super.onStartCommand(intent, flags, startId)
     }
@@ -36,10 +48,12 @@ class NotifyService : Service() {
         createNotificationChannel()
     }
 
-    private fun showNotification2(){
+    private fun showNotification2() {
         val fullScreenIntent = Intent(this, FullscreenActivity::class.java)
-        val fullScreenPendingIntent = PendingIntent.getActivity(this, 0,
-            fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val fullScreenPendingIntent = PendingIntent.getActivity(
+            this, 0,
+            fullScreenIntent, PendingIntent.FLAG_UPDATE_CURRENT
+        )
 
         val notificationBuilder =
             NotificationCompat.Builder(this, CHANNEL_ID)
@@ -71,6 +85,8 @@ class NotifyService : Service() {
             val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
                 description = descriptionText
                 lockscreenVisibility = Notification.VISIBILITY_PRIVATE
+                vibrationPattern = vibrationArray
+                enableVibration(true)
             }
 
             // Register the channel with the system
@@ -83,6 +99,7 @@ class NotifyService : Service() {
     private fun showNotification() {
         println("NotifyService > showNotification()")
 
+
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("My notification")
@@ -93,16 +110,29 @@ class NotifyService : Service() {
             .setDefaults(Notification.DEFAULT_VIBRATE)
             .setCategory(NotificationCompat.CATEGORY_CALL)
             .setAutoCancel(false)
+            .setVibrate(vibrationArray)
             .setFullScreenIntent(PendingIntent.getActivity(this, 0, getFullScreenIntent(), 0), true)
 //            .setContent(RemoteViews(packageName, R.layout.notification_content_view))
-            .setCustomHeadsUpContentView(RemoteViews(packageName, R.layout.notification_handsup_content))
+            .setCustomHeadsUpContentView(
+                RemoteViews(
+                    packageName,
+                    R.layout.notification_handsup_content
+                )
+            )
             .setCustomBigContentView(RemoteViews(packageName, R.layout.notification_big_content))
 
         startForeground(NOTIFICATION_ID, builder.build())
 
-
+        playRingtone()
     }
 
+    override fun playRingtone() {
+        ringtonePlayer.playRingtone()
+    }
+
+    override fun stopRingtone() {
+        ringtonePlayer.stopRingtone()
+    }
 
     private fun getFullScreenIntent(): Intent {
         val intent = Intent(this, FullscreenActivity::class.java)
