@@ -13,13 +13,17 @@ import androidx.appcompat.app.AppCompatActivity
  */
 class FullscreenActivity : AppCompatActivity() {
 
+    companion object {
+        const val EXTRA_NAME = "extra-name"
+    }
+
     private val broadCastReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             println("FullscreenActivity > onReceive action : ${intent?.action}")
 
             val action = intent?.action
 
-            when(action) {
+            when (action) {
                 Intent.ACTION_SCREEN_ON -> cancelNotification()
             }
         }
@@ -32,8 +36,18 @@ class FullscreenActivity : AppCompatActivity() {
 
         println("FullscreenActivity > onCreate")
 
+        parseData()
+
+        cancelNotification()
 
         registerReceiver()
+    }
+
+    private fun parseData() {
+
+        val parcel = intent.extras?.getParcelable<TestParcel>(EXTRA_NAME)
+        println("FullscreenActivity > parseData > parcel : $parcel")
+
     }
 
     private fun registerReceiver() {
@@ -61,7 +75,7 @@ class FullscreenActivity : AppCompatActivity() {
 
     private fun cancelNotification() {
         val intent = Intent(this, NotifyService::class.java).apply {
-            putExtra(NotifyService.REQUEST_CODE, NotifyService.REQUEST_CODE_CANCEL)
+            putExtra(NotifyService.REQUEST_CODE, NotifyService.REQUEST_CODE_NOTI_CANCEL)
         }
         startService(intent)
     }

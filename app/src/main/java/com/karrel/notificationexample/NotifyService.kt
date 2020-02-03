@@ -4,9 +4,11 @@ import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.os.Bundle
 import android.os.IBinder
 import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 
 
 class NotifyService : Service(), Mediable {
@@ -16,9 +18,13 @@ class NotifyService : Service(), Mediable {
         private const val NOTIFICATION_ID = 4
 
         const val REQUEST_CODE = "request-code"
+        const val REQUEST_CODE_SHOW_NOTI = 1234
         const val REQUEST_CODE_CANCEL = 1111
         const val REQUEST_CODE_ACCEPT = 1112
+        const val REQUEST_CODE_NOTI_CANCEL = 1113
     }
+
+    private var notificationId = 1
 
     private val vibrationArray: LongArray by lazy {
         longArrayOf( // 최대 60초
@@ -51,9 +57,11 @@ class NotifyService : Service(), Mediable {
                 onAccept()
             }
             REQUEST_CODE_CANCEL -> onCancel()
-            else -> {
+            REQUEST_CODE_NOTI_CANCEL -> stopForeground(true)
+            REQUEST_CODE_SHOW_NOTI -> {
+                NotificationManagerCompat.from(this).cancelAll()
                 showNotification()
-                playRingtone()
+//                playRingtone()
             }
         }
 
@@ -126,7 +134,7 @@ class NotifyService : Service(), Mediable {
             .setCustomHeadsUpContentView(headsupView)
             .setCustomBigContentView(headsupView)
 
-        startForeground(NOTIFICATION_ID, builder.build())
+        startForeground(notificationId, builder.build())
 
 
     }
@@ -174,6 +182,9 @@ class NotifyService : Service(), Mediable {
 
     private fun getFullScreenIntent(): Intent {
         val intent = Intent(this, FullscreenActivity::class.java)
+            .apply {
+                putExtra(FullscreenActivity.EXTRA_NAME, TestParcel("hello"))
+            }
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
         return intent
     }

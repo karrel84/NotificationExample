@@ -14,6 +14,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        setupButtonEvents()
+    }
+
+    private fun setupButtonEvents() {
         notification.setOnClickListener {
             startNotifyService()
         }
@@ -22,12 +26,28 @@ class MainActivity : AppCompatActivity() {
                 startNotifyService()
             }
         }
+
+        intentTest.setOnClickListener {
+            val intent = Intent(this, FullscreenActivity::class.java)
+                .apply {
+                    val bundle = Bundle().apply {
+                        putParcelable(FullscreenActivity.EXTRA_NAME, TestParcel("hello"))
+                    }
+                    putExtras(bundle)
+                }
+            startActivity(intent)
+        }
     }
 
 
     private fun startNotifyService() {
         val intent = Intent(this, NotifyService::class.java)
+            .apply {
+                val bundle = Bundle().apply {
+                    putParcelable(FullscreenActivity.EXTRA_NAME, TestParcel("hello"))
+                }
+                putExtras(bundle)
+            }
         startService(intent)
     }
 }
-
